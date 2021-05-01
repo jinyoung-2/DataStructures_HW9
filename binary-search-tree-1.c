@@ -31,6 +31,7 @@ int freeBST(Node* head); /* free all memories allocated to the tree */
 
 /* you may add your own defined functions if necessary */
 Node* make_newnode(int key);	/* 새로운 노드 생성 및 초기화하는 함수 */
+void postorderTraversal_free(Node* ptr); /*recursive postorder traversal 방식으로 free nodes.*/
 
 int main()
 {
@@ -110,7 +111,9 @@ int main()
 	return 1;
 }
 
-int initializeBST(Node** h) {
+
+//이중포인터를 이용하여 h가 가리키는 포인터의 값 변경
+int initializeBST(Node** h) { 
 
 	/* if the tree is not empty, then remove all allocated nodes from the tree*/
 	if(*h != NULL)
@@ -124,7 +127,8 @@ int initializeBST(Node** h) {
 	return 1;
 }
 
-/* inorderTraversal: LVR방식*/
+
+/* recursive inorderTraversal: LVR방식*/
 void inorderTraversal(Node* ptr) 
 {
 	if(ptr)
@@ -136,7 +140,8 @@ void inorderTraversal(Node* ptr)
 	return ;	//해당노드가 NULL일 때
 }
 
-/* preorderTraversal: VLR방식*/
+
+/* recursive preorderTraversal: VLR방식*/
 void preorderTraversal(Node* ptr)	
 {
 	if(ptr)
@@ -148,7 +153,8 @@ void preorderTraversal(Node* ptr)
 	return ;	//해당노드가 NULL일 때
 }
 
-/* postorderTraversal: LRV방식*/
+
+/* recursive postorderTraversal: LRV방식*/
 void postorderTraversal(Node* ptr)
 {
 	if(ptr)
@@ -159,6 +165,7 @@ void postorderTraversal(Node* ptr)
 	}
 	return ;	//해당노드가 NULL일 때
 }
+
 
 /* 새로운 노드 생성 및 초기화하는 함수 */
 Node* make_newnode(int key)
@@ -172,7 +179,8 @@ Node* make_newnode(int key)
 	return insertion_node;
 }
 
-/* 노드 삽입함수 */
+
+/* insert a node to the tree */
 int insert(Node* head, int key)
 {
 	//interative insertion
@@ -224,12 +232,15 @@ int insert(Node* head, int key)
 	}
 }
 
+
+/* delete the leaf node for the key */
 int deleteLeafNode(Node* head, int key)
 {
 
 }
 
-//순환함수
+
+/* search the node for the key(recursive) */
 Node* searchRecursive(Node* ptr, int key)
 {	
 	/*노드가 존재하지 않을 때 -> 최종적으로 찾기 실패 */
@@ -253,7 +264,7 @@ Node* searchRecursive(Node* ptr, int key)
 }
 
 
-//비순환함수(반복문 이용)
+/* search the node for the key using loop(non-recursive)*/
 Node* searchIterative(Node* head, int key)
 {
 	Node* ptr=head->left;
@@ -274,23 +285,45 @@ Node* searchIterative(Node* head, int key)
 	return NULL;
 }
 
+
+/* free all memories allocated to the tree */
 int freeBST(Node* head)
 {
-	//기존에 트리에 노드가 존재한다면, 해당 노드들을 모두 해제한다.
-	if((head->left)!=NULL)
+	/* 기존에 트리에 노드가 존재한다면, 해당 노드들을 모두 해제한다.
+	   		-위에서부터 해제-> level에 따라 자식노드와 부모노드를 설정해야 하는 포인터가 많이 필요(효율적x)
+	   		-아래에서부터 해제 -> LRV방식인 postorderTraversal 방식 이용(이유:새로운 Node형 포인터 생성없이 메모리를 해제할 수 있음) */
+	if(head->left)
 	{
-		Node* free_node=head->left;
-		while(free_node)
-		{
-
-			free(free_node);
-		}
+		postorderTraversal_free(head->left);
 	}
-
-
-	//head 메모리를 해제한다.
-	free(head);
+	//해당 노드가 NULL일 때
+	free(head); 	//head 메모리를 해제한다.
 	return 0;
 }
 
 
+/*recursive postorder traversal 방식으로 free nodes.*/
+void postorderTraversal_free(Node* ptr)
+{
+	if(ptr)
+	{
+		postorderTraversal_free(ptr->left);	//left subtree로 이동
+		postorderTraversal_free(ptr->right);	//right subtree로 이동
+		free(ptr);
+	}
+	return ;	//해당노드가 NULL일 때
+}
+
+// /*recursive inorder traversal 방식으로 free nodes.*/
+// void inorderTraversal_free(Node* ptr)
+// {
+// 	Node* pr=NULL;  //LVR
+// 	if(ptr)
+// 	{
+// 		inorderTraversal_free(ptr->left);	//left subtree로 이동
+// 		pr=ptr->right;
+// 		free(ptr);
+// 		inorderTraversal_free(pr);	//right subtree로 이동
+// 	}
+// 	return ;	//해당노드가 NULL일 때
+// }
