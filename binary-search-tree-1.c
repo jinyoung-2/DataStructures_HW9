@@ -32,13 +32,14 @@ int freeBST(Node* head); /* free all memories allocated to the tree */
 /* you may add your own defined functions if necessary */
 Node* make_newnode(int key);	/* 새로운 노드 생성 및 초기화하는 함수 */
 void postorderTraversal_free(Node* ptr); /*recursive postorder traversal 방식으로 free nodes.*/
+Node* searchIt(Node* head, int key); /*삭제할 노드의 위치를 찾는 함수*/
 
 int main()
 {
 	char command;
 	int key;
 	Node* head = NULL;
-	Node* ptr = NULL;	/* temp */
+	Node* ptr = NULL;	
 
 	printf("[----- [jinyounglee] [2020039063] -----]\n");
 	do{
@@ -236,7 +237,82 @@ int insert(Node* head, int key)
 /* delete the leaf node for the key */
 int deleteLeafNode(Node* head, int key)
 {
+	/* 1-1) tree에 node가 존재하지 않을 때*/
+	if(head->left==NULL)
+	{
+		printf("ERROR: There is no node in tree\n");
+		return -1;
+	}
 
+	/* 1-2) tree에 node가 1개 이상 존재할 때 */
+	Node* deleted=searchIt(head,key);  	//삭제할 노드의 부모노드 주소를 저장하는 deleted포인터 생성
+
+	/* 2-1) tree에 key에 대한 노드가 존재하지 않을 때 */
+	if(deleted==NULL)
+	{
+		printf("ERROR: There is no node to delete\n");
+		return -1;
+	}
+
+	//함수반환이 NULL이 아니면: 삭제할 노드의 부모노드를 return 
+	
+	/* 2-2) tree에 key값을 갖는 노드가 존재할 때 */
+	//2-2-1) 삭제할 노드가 leaf node일 때
+	if((deleted->right==deleted)&&(deleted->left->left==NULL)&&(deleted->left->right==NULL))	
+	{
+		//head->left가 가리키는 node가 leaf node일 때
+		free(deleted->left);	//메모리 해제
+		deleted->left=NULL;		//부모노드의 left를 NULL로 설정 
+		return 0;
+	}
+	if(key<deleted->key)
+	{
+		if((deleted->left->left==NULL)&&(deleted->left->right==NULL))
+		{	
+			free(deleted->left);	//메모리 해제
+			deleted->left=NULL;		//부모노드의 left를 NULL로 설정 
+			return 0;
+		}
+	}
+	else if(key>deleted->key)
+	{
+		if((deleted->right->left==NULL)&&(deleted->right->right==NULL))
+		{	
+			free(deleted->right);	//메모리 해제
+			deleted->right=NULL;	//부모노드의 right를 NULL로 설정 
+			return 0;
+		}
+	}
+	//2-2-2) 삭제할 노드가 non-leaf node일 때 
+	printf("the node [%d] is not a leaf\n",key);
+	return -1;
+}
+
+
+/* key와 동일한 데이터값을 갖는 노드가 존재하는 경우, 노드의 부모노드 반환하고
+	key와 동일한 데이터값을 갖는 노드가 없는 경우, NULL 반환하는 함수 */
+Node* searchIt(Node* head, int key)
+{
+	Node* parent=head;
+	Node* child=head->left;
+
+	while(child) 
+	{
+		if(key==child->key)
+			return parent;		
+		if(key<child->key)
+		{
+			parent=child;
+			child=child->left;
+		}
+	
+		if(key>child->key)
+		{
+			parent=child;
+			child=child->right;	
+		}	
+	}
+	return NULL;
 }
 
 
@@ -247,18 +323,14 @@ Node* searchRecursive(Node* ptr, int key)
 	if(!ptr)			
 		return NULL; //NULL반환
 
-	/*노드가 존재할 때
-		1.주어진 key값이 노드의 데이터값과 동일할 때
-		2.주어진 키값이 노드의 데이터값보다 작을 때
-		3.주어진 key값이 노드의 데이터값보다 클 때 */
-
-	//주어진 key값이 노드의 데이터값과 동일할 때 -> 찾기 성공 
+	/*노드가 존재할 때*/
+	//Case 1: 주어진 key값이 노드의 데이터값과 동일할 때 -> 찾기 성공 
 	if(key==ptr->key)
 		return ptr;		//해당노드ptr 주소 반환
-	//주어진 키값이 노드의 데이터값보다 작을 때
+	//Case 2: 주어진 키값이 노드의 데이터값보다 작을 때
 	if(key<ptr->key)
 		return searchRecursive(ptr->left,key);	//rigth subtree 호출
-	//주어진 key값이 노드의 데이터값보다 클 때
+	//Case 3: 주어진 key값이 노드의 데이터값보다 클 때
 	if(key>ptr->key)
 		return searchRecursive(ptr->right,key);	//left subtree 호출
 }
