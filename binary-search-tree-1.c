@@ -30,7 +30,7 @@ Node* searchIterative(Node* head, int key);  /* search the node for the key */
 int freeBST(Node* head); /* free all memories allocated to the tree */
 
 /* you may add your own defined functions if necessary */
-
+Node* make_newnode(int key);	/* 새로운 노드 생성 및 초기화하는 함수 */
 
 int main()
 {
@@ -110,14 +110,6 @@ int main()
 	return 1;
 }
 
-//여기 공부하기!!!
-/* tree를 접근할 수 있는 방법 3가지
-1.root인 headnode 이용
-2.root->leftchild이용
-3.tree로 직접 접근 
-*/
-/* Q. 여기서는 headnode의 left를 이용하여 tree에 접근하는 건가? */
-
 int initializeBST(Node** h) {
 
 	/* if the tree is not empty, then remove all allocated nodes from the tree*/
@@ -168,33 +160,68 @@ void postorderTraversal(Node* ptr)
 	return ;	//해당노드가 NULL일 때
 }
 
+/* 새로운 노드 생성 및 초기화하는 함수 */
+Node* make_newnode(int key)
+{
+	Node* insertion_node=NULL;
+	insertion_node=(Node*)malloc(sizeof(Node));
 
-// typedef struct node {
-// 	int key;
-// 	struct node *left;
-// 	struct node *right;
-// } Node;
+	insertion_node->key=key;
+	insertion_node->left=NULL;
+	insertion_node->right=NULL;
+	return insertion_node;
+}
 
+/* 노드 삽입함수 */
 int insert(Node* head, int key)
 {
-	Node* ptr=head->left;
-	if(!ptr)  //노드가 존재하지 않을 시
-	{
+	//interative insertion
+	Node* insertion_node=make_newnode(key);	 //삽입할 노드 메모리할당 및 초기화
+	Node* parent=head;			//parent node를 가리키는 포인터 생성
+	Node* child=head->left;		//child node를 가리키는 포인터 생성 
 
-	}
-	if(key==ptr->key)  //이 경우는 존재하지 않지 않나?
+	//headnode의 left pointer가 가리키는 노드가 존재하지 않을 때(트리가 존재하지 않는 상태) 
+	if(head->left==NULL)
 	{
-
+		head->left=insertion_node;		//head node의 left pointer가 삽입할 노드를 가리키도록 설정 
+		return 0;
 	}
-	if(key<ptr->key)
+
+	while(1)
 	{
-
+		//주어진 key값과 child노드의 데이터값과 동일할 때 -> 트리는 같은 값이 존재할 수 없으므로 에러가 발생함
+		if(key==(child->key))
+		{
+			printf("ERROR: Already exists\n");
+			return -1;
+		}
+		//주어진 key값이 child노드의 데이터값보다 작을 때
+		if(key<(child->key))
+		{
+			//child노드의 left pointer가 NULL을 가리키면, NULL 위치에 새로운 노드를 삽입한다 
+			if(child->left==NULL)
+			{
+				child->left=insertion_node;
+				return 0;
+			}
+			//NULL이 아닐 시, child노드의 left pointer가 가리키는 노드로 이동
+			parent=child;
+			child=child->left;
+		}
+		//주어진 key값이 child노드의 데이터값보다 클 때
+		if(key>(child->key))
+		{
+			//child노드의 right pointer가 NULL을 가리키면, NULL 위치에 새로운 노드를 삽입한다 
+			if(child->right==NULL)
+			{
+				child->right=insertion_node;
+				return 0;
+			}
+			//NULL이 아닐 시, child노드의 right pointer가 가리키는 노드로 이동
+			parent=child;
+			child=child->right;
+		}
 	}
-	if(key>ptr->key)
-	{
-
-	}
-	
 }
 
 int deleteLeafNode(Node* head, int key)
@@ -205,7 +232,7 @@ int deleteLeafNode(Node* head, int key)
 //순환함수
 Node* searchRecursive(Node* ptr, int key)
 {	
-	/*노드가 존재하지 않을 때*/
+	/*노드가 존재하지 않을 때 -> 최종적으로 찾기 실패 */
 	if(!ptr)			
 		return NULL; //NULL반환
 
@@ -214,7 +241,7 @@ Node* searchRecursive(Node* ptr, int key)
 		2.주어진 키값이 노드의 데이터값보다 작을 때
 		3.주어진 key값이 노드의 데이터값보다 클 때 */
 
-	//주어진 key값이 노드의 데이터값과 동일할 때
+	//주어진 key값이 노드의 데이터값과 동일할 때 -> 찾기 성공 
 	if(key==ptr->key)
 		return ptr;		//해당노드ptr 주소 반환
 	//주어진 키값이 노드의 데이터값보다 작을 때
@@ -233,7 +260,7 @@ Node* searchIterative(Node* head, int key)
 	//ptr가 NULL이 아닐 때까지 반복(=노드가 존재할때까지 반복)
 	while(ptr) 
 	{
-		//주어진 key값이 노드의 데이터값과 동일할 때, ptr을 반환함
+		//주어진 key값이 노드의 데이터값과 동일할 때, ptr을 반환함 -> 최종적으로 찾기 성공
 		if(key==ptr->key)
 			return ptr;		//해당노드ptr 주소 반환
 		//주어진 키값이 노드의 데이터값보다 작을 때, ptr을 ptr의 left포인터가 가리키는 노드를 가리키도록 설정(=왼쪽 노드로 이동)
@@ -243,7 +270,7 @@ Node* searchIterative(Node* head, int key)
 		if(key>ptr->key)
 			ptr=ptr->right;	//left subtree로 이동
 	}
-	//노드가 존재하지 않을 때 NULL반환
+	//노드가 존재하지 않을 때 NULL반환 -> 찾기 실패
 	return NULL;
 }
 
@@ -252,7 +279,12 @@ int freeBST(Node* head)
 	//기존에 트리에 노드가 존재한다면, 해당 노드들을 모두 해제한다.
 	if((head->left)!=NULL)
 	{
-		/**/
+		Node* free_node=head->left;
+		while(free_node)
+		{
+
+			free(free_node);
+		}
 	}
 
 
@@ -262,4 +294,3 @@ int freeBST(Node* head)
 }
 
 
-/* head->left==NULL이면 root가 존재하지 않는다(트리존재x 노드존재x)*/
