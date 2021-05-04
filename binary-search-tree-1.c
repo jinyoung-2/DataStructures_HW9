@@ -31,7 +31,7 @@ int freeBST(Node* head); /* free all memories allocated to the tree */
 
 /* you may add your own defined functions if necessary */
 Node* make_newnode(int key);	/* 새로운 노드 생성 및 초기화하는 함수 */
-void postorderTraversal_free(Node* ptr); /*recursive postorder traversal 방식으로 free nodes.*/
+void postorderTraversal_free(Node* ptr); /*recursive postorder traversal 방식으로 free nodes*/
 Node* searchIt(Node* head, int key); /*삭제할 노드의 위치를 찾는 함수*/
 
 int main()
@@ -204,6 +204,7 @@ int insert(Node* head, int key)
 			printf("ERROR: Already exists\n");
 			return -1;
 		}
+
 		//주어진 key값이 child노드의 데이터값보다 작을 때
 		if(key<(child->key))
 		{
@@ -213,10 +214,11 @@ int insert(Node* head, int key)
 				child->left=insertion_node;
 				return 0;
 			}
-			//NULL이 아닐 시, child노드의 left pointer가 가리키는 노드로 이동
+			//NULL이 아닐 시, child노드의 left pointer가 가리키는 노드로 이동(child의 left tree로 이동)
 			parent=child;
 			child=child->left;
 		}
+
 		//주어진 key값이 child노드의 데이터값보다 클 때
 		if(key>(child->key))
 		{
@@ -226,7 +228,7 @@ int insert(Node* head, int key)
 				child->right=insertion_node;
 				return 0;
 			}
-			//NULL이 아닐 시, child노드의 right pointer가 가리키는 노드로 이동
+			//NULL이 아닐 시, child노드의 right pointer가 가리키는 노드로 이동(child의 right tree로 이동)
 			parent=child;
 			child=child->right;
 		}
@@ -253,18 +255,19 @@ int deleteLeafNode(Node* head, int key)
 		printf("ERROR: There is no node to delete\n");
 		return -1;
 	}
-
-	//함수반환이 NULL이 아니면: 삭제할 노드의 부모노드를 return 
 	
 	/* 2-2) tree에 key값을 갖는 노드가 존재할 때 */
-	//2-2-1) 삭제할 노드가 leaf node일 때
+	/* 2-2-1) 삭제할 노드가 leaf node일 때 */
+
+	//head->left가 가리키는 node가 leaf node일 때(=tree의 첫번째 노드가 leaf node인 경우 )
 	if((deleted->right==deleted)&&(deleted->left->left==NULL)&&(deleted->left->right==NULL))	
 	{
-		//head->left가 가리키는 node가 leaf node일 때
 		free(deleted->left);	//메모리 해제
 		deleted->left=NULL;		//부모노드의 left를 NULL로 설정 
 		return 0;
 	}
+
+	//주어진 key값이 deleted가 가리키는 데이터값보다 작을 때 -> left subtree로 이동
 	if(key<deleted->key)
 	{
 		if((deleted->left->left==NULL)&&(deleted->left->right==NULL))
@@ -274,6 +277,7 @@ int deleteLeafNode(Node* head, int key)
 			return 0;
 		}
 	}
+	//주어진 key값이 deleted가 가리키는 데이터값보다 클 때 -> right subtree로 이동
 	else if(key>deleted->key)
 	{
 		if((deleted->right->left==NULL)&&(deleted->right->right==NULL))
@@ -283,6 +287,7 @@ int deleteLeafNode(Node* head, int key)
 			return 0;
 		}
 	}
+
 	//2-2-2) 삭제할 노드가 non-leaf node일 때 
 	printf("the node [%d] is not a leaf\n",key);
 	return -1;
@@ -293,26 +298,31 @@ int deleteLeafNode(Node* head, int key)
 	key와 동일한 데이터값을 갖는 노드가 없는 경우, NULL 반환하는 함수 */
 Node* searchIt(Node* head, int key)
 {
+	//새로운 Node*형 포인터 2개 생성
 	Node* parent=head;
 	Node* child=head->left;
 
 	while(child) 
 	{
+		//주어진 key값과 동일한 데이터값을 갖는 노드인 경우, 해당 노드의 부모노드를 return
 		if(key==child->key)
-			return parent;		
+			return parent;	
+
+		//주어진 key값이 해당노드의 데이터값보다 작은 경우, 부모노드와 자식노드 재설정	-> left subtree로 이동 
 		if(key<child->key)
 		{
 			parent=child;
 			child=child->left;
 		}
 	
+		//주어진 key값이 해당노드의 데이터값보다 작은 경우, 부모노드와 자식노드 재설정 -> right subtree로 이동 
 		if(key>child->key)
 		{
 			parent=child;
 			child=child->right;	
 		}	
 	}
-	return NULL;
+	return NULL;	//NULL반환 
 }
 
 
@@ -324,12 +334,14 @@ Node* searchRecursive(Node* ptr, int key)
 		return NULL; //NULL반환
 
 	/*노드가 존재할 때*/
-	//Case 1: 주어진 key값이 노드의 데이터값과 동일할 때 -> 찾기 성공 
+	//Case 1: 주어진 key값이 노드의 데이터값과 동일할 때  -> 최종적으로 찾기 성공
 	if(key==ptr->key)
 		return ptr;		//해당노드ptr 주소 반환
+
 	//Case 2: 주어진 키값이 노드의 데이터값보다 작을 때
 	if(key<ptr->key)
 		return searchRecursive(ptr->left,key);	//rigth subtree 호출
+
 	//Case 3: 주어진 key값이 노드의 데이터값보다 클 때
 	if(key>ptr->key)
 		return searchRecursive(ptr->right,key);	//left subtree 호출
@@ -346,14 +358,16 @@ Node* searchIterative(Node* head, int key)
 		//주어진 key값이 노드의 데이터값과 동일할 때, ptr을 반환함 -> 최종적으로 찾기 성공
 		if(key==ptr->key)
 			return ptr;		//해당노드ptr 주소 반환
+
 		//주어진 키값이 노드의 데이터값보다 작을 때, ptr을 ptr의 left포인터가 가리키는 노드를 가리키도록 설정(=왼쪽 노드로 이동)
 		if(key<ptr->key)
-			ptr=ptr->left;	//rigth subtree로 이동
+			ptr=ptr->left;	//left subtree로 이동
+
 		//주어진 key값이 노드의 데이터값보다 클 때, ptr을 ptr의 right포인터가 가리키는 노드를 가리키도록 설정(=오른쪽 노드로 이동)
 		if(key>ptr->key)
-			ptr=ptr->right;	//left subtree로 이동
+			ptr=ptr->right;	//right subtree로 이동
 	}
-	//노드가 존재하지 않을 때 NULL반환 -> 찾기 실패
+	//노드가 존재하지 않을 때 NULL반환 -> 최종적으로 찾기 실패
 	return NULL;
 }
 
@@ -364,6 +378,7 @@ int freeBST(Node* head)
 	/* 기존에 트리에 노드가 존재한다면, 해당 노드들을 모두 해제한다.
 	   		-위에서부터 해제-> level에 따라 자식노드와 부모노드를 설정해야 하는 포인터가 많이 필요(효율적x)
 	   		-아래에서부터 해제 -> LRV방식인 postorderTraversal 방식 이용(이유:새로운 Node형 포인터 생성없이 메모리를 해제할 수 있음) */
+	
 	if(head->left)
 	{
 		postorderTraversal_free(head->left);
@@ -379,23 +394,9 @@ void postorderTraversal_free(Node* ptr)
 {
 	if(ptr)
 	{
-		postorderTraversal_free(ptr->left);	//left subtree로 이동
+		postorderTraversal_free(ptr->left);		//left subtree로 이동
 		postorderTraversal_free(ptr->right);	//right subtree로 이동
 		free(ptr);
 	}
 	return ;	//해당노드가 NULL일 때
 }
-
-// /*recursive inorder traversal 방식으로 free nodes.*/
-// void inorderTraversal_free(Node* ptr)
-// {
-// 	Node* pr=NULL;  //LVR
-// 	if(ptr)
-// 	{
-// 		inorderTraversal_free(ptr->left);	//left subtree로 이동
-// 		pr=ptr->right;
-// 		free(ptr);
-// 		inorderTraversal_free(pr);	//right subtree로 이동
-// 	}
-// 	return ;	//해당노드가 NULL일 때
-// }
